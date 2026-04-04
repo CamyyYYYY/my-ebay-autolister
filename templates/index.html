@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>eBay Image-Match Autolister</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f7fb;
+      color: #1f2937;
+    }
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    h1 {
+      margin-top: 0;
+      color: #0f4aa1;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 20px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      padding: 18px;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+    input, textarea, select, button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+      font-size: 14px;
+    }
+    textarea {
+      min-height: 180px;
+      resize: vertical;
+    }
+    button {
+      cursor: pointer;
+      border: none;
+      font-weight: 700;
+    }
+    .btn-primary {
+      background: #1d4ed8;
+      color: white;
+    }
+    .btn-purple {
+      background: #6d28d9;
+      color: white;
+    }
+    .btn-green {
+      background: #059669;
+      color: white;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .row-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .mb {
+      margin-bottom: 14px;
+    }
+    .thumbs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .thumbs img {
+      width: 110px;
+      height: 110px;
+      object-fit: cover;
+      border-radius: 10px;
+      border: 1px solid #dbe2ea;
+      background: #eef2f7;
+    }
+    .status {
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 12px;
+      padding: 14px;
+      min-height: 180px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-family: Consolas, monospace;
+      font-size: 13px;
+    }
+    .matches {
+      margin: 0;
+      padding-left: 18px;
+    }
+    .matches li {
+      margin-bottom: 8px;
+    }
+    .inline-check {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .inline-check input {
+      width: auto;
+    }
+    .small {
+      color: #475569;
+      font-size: 13px;
+      margin-top: -4px;
+      margin-bottom: 10px;
+    }
+    @media (max-width: 920px) {
+      .grid, .row, .row-3 {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>eBay Image-Match Autolister</h1>
+
+    <div class="grid">
+      <div class="card">
+        <label for="images">Product Images</label>
+        <input id="images" type="file" accept=".jpg,.jpeg,.png,.bmp,.gif,.webp,.avif" multiple />
+        <div class="small">Upload one or more images. The first image is used for compare/autofill.</div>
+
+        <div class="row">
+          <button class="btn-purple" id="compareBtn" type="button">Compare on eBay</button>
+          <button class="btn-green" id="createBtn" type="button">Create Listing</button>
+        </div>
+
+        <div id="thumbs" class="thumbs"></div>
+
+        <div class="mb">
+          <label for="matches">Top Matches</label>
+          <ul id="matches" class="matches"></ul>
+        </div>
+
+        <div class="mb">
+          <label>Status</label>
+          <div id="status" class="status">Waiting...</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="mb">
+          <label for="title">Title</label>
+          <input id="title" type="text" maxlength="80" />
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="price">Price ($)</label>
+            <input id="price" type="text" />
+          </div>
+          <div>
+            <label for="quantity">Quantity</label>
+            <input id="quantity" type="number" min="1" value="1" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="category_id">Category ID</label>
+            <input id="category_id" type="text" />
+          </div>
+          <div>
+            <label for="category_name">Category Name</label>
+            <input id="category_name" type="text" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="size">Apparel Size</label>
+            <input id="size" type="text" />
+          </div>
+          <div>
+            <label for="size_type">Size Type</label>
+            <select id="size_type">
+              <option value="">-- Select --</option>
+              <option>Regular</option>
+              <option>Big & Tall</option>
+              <option>Petite</option>
+              <option>Juniors</option>
+              <option>Maternity</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="condition_id">Condition</label>
+            <select id="condition_id">
+              <option value="1000">New</option>
+              <option value="1500">New other / Open box</option>
+              <option value="3000">Used</option>
+              <option value="7000">For parts or not working</option>
+            </select>
+          </div>
+          <div>
+            <label for="best_offer">Best Offer</label>
+            <select id="best_offer">
+              <option value="true">Enabled</option>
+              <option value="false">Disabled</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="mb">
+          <label for="condition_desc">Condition Notes</label>
+          <input id="condition_desc" type="text" placeholder="Ignored for Brand New" />
+        </div>
+
+        <div class="mb">
+          <label for="description">Listing Description (HTML allowed)</label>
+          <textarea id="description"></textarea>
+        </div>
+
+        <div class="mb">
+          <label for="specifics_json">Extra Specifics JSON (optional)</label>
+          <textarea id="specifics_json" placeholder='Example: { "Brand": ["Nike"], "Color": ["Black"] }'></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const imagesInput = document.getElementById("images");
+    const thumbs = document.getElementById("thumbs");
+    const matches = document.getElementById("matches");
+    const statusBox = document.getElementById("status");
+
+    const titleInput = document.getElementById("title");
+    const priceInput = document.getElementById("price");
+    const categoryIdInput = document.getElementById("category_id");
+    const categoryNameInput = document.getElementById("category_name");
+    const sizeInput = document.getElementById("size");
+    const sizeTypeInput = document.getElementById("size_type");
+    const quantityInput = document.getElementById("quantity");
+    const conditionIdInput = document.getElementById("condition_id");
+    const conditionDescInput = document.getElementById("condition_desc");
+    const bestOfferInput = document.getElementById("best_offer");
+    const descriptionInput = document.getElementById("description");
+    const specificsJsonInput = document.getElementById("specifics_json");
+
+    function setStatus(message) {
+      if (typeof message === "string") {
+        statusBox.textContent = message;
+      } else {
+        statusBox.textContent = JSON.stringify(message, null, 2);
+      }
+    }
+
+    function clearMatches() {
+      matches.innerHTML = "";
+    }
+
+    function renderMatches(items) {
+      clearMatches();
+      for (const item of items || []) {
+        const li = document.createElement("li");
+        li.textContent = `${item.title} • ${item.category || "—"} • ${item.price ?? "—"}`;
+        li.style.cursor = "pointer";
+        li.onclick = () => {
+          titleInput.value = item.title || "";
+        };
+        matches.appendChild(li);
+      }
+    }
+
+    imagesInput.addEventListener("change", () => {
+      thumbs.innerHTML = "";
+      for (const file of imagesInput.files) {
+        const img = document.createElement("img");
+        img.src = URL.createObjectURL(file);
+        img.onload = () => URL.revokeObjectURL(img.src);
+        thumbs.appendChild(img);
+      }
+    });
+
+    document.getElementById("compareBtn").addEventListener("click", async () => {
+      if (!imagesInput.files.length) {
+        setStatus("Please choose at least one image first.");
+        return;
+      }
+
+      const fd = new FormData();
+      for (const file of imagesInput.files) {
+        fd.append("images", file);
+      }
+
+      setStatus("Comparing on eBay...");
+
+      try {
+        const res = await fetch("/api/compare", {
+          method: "POST",
+          body: fd
+        });
+
+        const data = await res.json();
+        setStatus(data);
+
+        if (!data.ok) return;
+
+        titleInput.value = data.title || "";
+        priceInput.value = data.price ?? "";
+        categoryIdInput.value = data.category?.id || "";
+        categoryNameInput.value = data.category?.name || "";
+        descriptionInput.value = data.description || "";
+
+        if (data.apparel?.Size?.[0]) {
+          sizeInput.value = data.apparel.Size[0];
+        }
+        if (data.apparel?.["Size Type"]?.[0]) {
+          sizeTypeInput.value = data.apparel["Size Type"][0];
+        }
+
+        renderMatches(data.matches);
+      } catch (err) {
+        setStatus(`Compare failed: ${err}`);
+      }
+    });
+
+    document.getElementById("createBtn").addEventListener("click", async () => {
+      if (!imagesInput.files.length) {
+        setStatus("Please choose at least one image first.");
+        return;
+      }
+
+      const fd = new FormData();
+
+      for (const file of imagesInput.files) {
+        fd.append("images", file);
+      }
+
+      fd.append("title", titleInput.value);
+      fd.append("price", priceInput.value);
+      fd.append("category_id", categoryIdInput.value);
+      fd.append("category_name", categoryNameInput.value);
+      fd.append("size", sizeInput.value);
+      fd.append("size_type", sizeTypeInput.value);
+      fd.append("quantity", quantityInput.value);
+      fd.append("condition_id", conditionIdInput.value);
+      fd.append("condition_desc", conditionDescInput.value);
+      fd.append("best_offer", bestOfferInput.value);
+      fd.append("description", descriptionInput.value);
+      fd.append("specifics_json", specificsJsonInput.value);
+
+      setStatus("Creating eBay listing...");
+
+      try {
+        const res = await fetch("/api/create", {
+          method: "POST",
+          body: fd
+        });
+
+        const data = await res.json();
+        setStatus(data);
+
+        if (data.ok && data.listing_url) {
+          window.open(data.listing_url, "_blank");
+        }
+      } catch (err) {
+        setStatus(`Create failed: ${err}`);
+      }
+    });
+  </script>
+</body>
+</html>

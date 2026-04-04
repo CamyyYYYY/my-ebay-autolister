@@ -1,0 +1,16 @@
+# Ignore virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Secrets
+.env
+
+# Uploads (temporary files)
+uploads/
+
+# VS Code settings (optional)
+.vscode/
+ebay_image_match_autolister.py

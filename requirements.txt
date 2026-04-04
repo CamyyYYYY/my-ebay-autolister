@@ -1,0 +1,7 @@
+Flask
+python-dotenv
+requests
+Pillow
+openai
+gunicorn
+pillow-avif-plugin
