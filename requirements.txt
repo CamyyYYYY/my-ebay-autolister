@@ -5,3 +5,5 @@ Pillow
 openai
 gunicorn
 pillow-avif-plugin
+
+simply push everything to render and add your own API set and other info to create your own autolister
